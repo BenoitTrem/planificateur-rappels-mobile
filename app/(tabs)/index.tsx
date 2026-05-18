@@ -1,75 +1,71 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { router } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { Button, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function HomeScreen() {
+  const [reminders, setReminders] = useState<any[]>([]);
+
+  const loadReminders = async () => {
+    const data = await AsyncStorage.getItem('reminders');
+    if (data) {
+      setReminders(JSON.parse(data));
+    } else {
+      setReminders([]);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadReminders();
+    }, [])
+  );
+
+  
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <FlatList
+        data={reminders}
+        keyExtractor={(_, index) => index.toString()}
+        renderItem={({ item, index }) => (
+        <TouchableOpacity onPress={() => router.push({ pathname: '/reminder-detail', params: { index: index.toString() } })}>
+          <View style={styles.card}>
+            <Text style={styles.reminderTitle}>{item.title}</Text>
+            <Text style={styles.reminderText}>
+              {`Between ${new Date(item.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} and ${new Date(item.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+            </Text>
+            <Text style={styles.reminderText}>{`${item.count} reminders/day`}</Text>
+          </View>
+        </TouchableOpacity>
+        )}    
+        ListEmptyComponent={<Text style={styles.emptyText}>No reminders scheduled</Text>
+      }
+      />
+      <Button
+        title="Go to Notifications"
+        onPress={() => router.push('/notification')}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: { flex: 1, justifyContent: 'center', padding: 20 },
+  emptyText: { fontSize: 20, fontWeight: 'bold', marginBottom: 20, color: 'white', textAlign: 'center', alignContent: 'center', paddingVertical: 70, },
+  card: {
+    backgroundColor: '#333',
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 10,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  reminderTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  reminderText: {
+    color: '#ccc',
+    fontSize: 14,
   },
 });
