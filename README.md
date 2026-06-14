@@ -10,7 +10,7 @@ A mobile reminder app built with [Expo](https://expo.dev). Schedule personalized
 - Schedule 1 or more notifications per reminder — for example, get notified 3 times a day to do the dishes
 - Edit or delete any reminder at any time
 - Cancel scheduled notifications without deleting the reminder
-- Tap a notification to be taken to a fun video 🎉
+- Tap a notification to be taken to a fun video 
 
 ---
 
